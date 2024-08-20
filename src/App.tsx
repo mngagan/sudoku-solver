@@ -1,5 +1,6 @@
 import { Box, Button, Container, Grid, Stack, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
+import { solveSudoku } from "./utils/solveSudoku";
 import { validateSudoku } from "./utils/validateSudoku";
 /**
  * 
@@ -14,6 +15,19 @@ import { validateSudoku } from "./utils/validateSudoku";
 3	4	2	1	7	9	8	6	5
  */
 
+/**
+ * Sudoku grid2
+ 5,,2,8,,7
+ 4,1,,6,,2,9
+ ,2,,9,,8,
+ 1,,,,6,,2
+ ,4,5,,,6,3,
+ 9,,8,,,,1
+ ,7,,8,,5,
+ 8,9,,5,,1,3
+ 3,,9,4,,6
+ */
+
 interface Error {
   row: number;
   col: number;
@@ -23,23 +37,74 @@ function App() {
   // const [gridValues, setGridValues] = useState(
   //   Array(9).fill(Array(9).fill(""))
   // );
+  // const [gridValues, setGridValues] = useState([
+  //   ["6", "9", "", "7", "2", "3", "1", "5", "8"],
+  //   ["5", "2", "3", "8", "9", "1", "7", "4", "6"],
+  //   ["8", "7", "1", "4", "6", "5", "2", "3", "9"],
+  //   ["2", "5", "8", "9", "3", "7", "6", "1", "4"],
+  //   ["4", "3", "9", "6", "1", "8", "5", "2", "7"],
+  //   ["7", "1", "6", "5", "4", "2", "9", "8", "3"],
+  //   ["1", "8", "7", "3", "5", "6", "4", "9", "2"],
+  //   ["9", "6", "5", "2", "8", "4", "3", "7", "1"],
+  //   ["3", "4", "2", "1", "7", "9", "8", "6", "5"],
+  // ]);
+
+  // const [gridValues, setGridValues] = useState([
+  //   ["5", "", "", "2", "", "8", "", "", "7"],
+  //   ["4", "1", "", "", "6", "", "", "2", "9"],
+  //   ["", "2", "", "", "9", "", "", "8", ""],
+  //   ["1", "", "", "", "", "6", "", "", "2"],
+  //   ["", "4", "5", "", "", "", "6", "3", ""],
+  //   ["9", "", "", "8", "", "", "", "", "1"],
+  //   ["", "7", "", "", "8", "", "", "5", ""],
+  //   ["8", "9", "", "", "5", "", "", "1", "3"],
+  //   ["3", "", "", "9", "", "4", "", "", "6"],
+  // ]);
+
+  // const [gridValues, setGridValues] = useState([
+  //   ["5", "3", "", "", "7", "", "", "", ""],
+  //   ["6", "", "", "1", "9", "5", "", "", ""],
+  //   ["", "9", "8", "", "", "", "", "6", ""],
+  //   ["8", "", "", "", "6", "", "", "", "3"],
+  //   ["4", "", "", "8", "", "3", "", "", "1"],
+  //   ["7", "", "", "", "2", "", "", "", "6"],
+  //   ["", "6", "", "", "", "", "2", "8", ""],
+  //   ["", "", "", "4", "1", "9", "", "", "5"],
+  //   ["", "", "", "", "8", "", "", "7", "9"],
+  // ]);
+
   const [gridValues, setGridValues] = useState([
-    ["6", "9", "4", "7", "2", "3", "1", "5", "8"],
-    ["5", "2", "3", "8", "9", "1", "7", "4", "6"],
-    ["8", "7", "1", "4", "6", "5", "2", "3", "9"],
-    ["2", "5", "8", "9", "3", "7", "6", "1", "4"],
-    ["4", "3", "9", "6", "1", "8", "5", "2", "7"],
-    ["7", "1", "6", "5", "4", "2", "9", "8", "3"],
-    ["1", "8", "7", "3", "5", "6", "4", "9", "2"],
-    ["9", "6", "5", "2", "8", "4", "3", "7", "1"],
-    ["3", "4", "2", "1", "7", "9", "8", "6", "5"],
+    ["8", "", "", "", "", "", "", "", ""],
+    ["", "", "3", "6", "", "", "", "", ""],
+    ["", "7", "", "", "9", "", "2", "", ""],
+    ["", "5", "", "", "", "7", "", "", ""],
+    ["", "", "", "", "4", "5", "7", "", ""],
+    ["", "", "", "1", "", "", "", "3", ""],
+    ["", "", "1", "", "", "", "", "6", "8"],
+    ["", "", "8", "5", "", "", "", "1", ""],
+    ["", "9", "", "", "", "", "4", "", ""],
   ]);
+
+  /**
+   * solution = [
+    ["8", "1", "2", "7", "5", "3", "6", "4", "9"],
+    ["9", "4", "3", "6", "8", "2", "1", "7", "5"],
+    ["6", "7", "5", "4", "9", "1", "2", "8", "3"],
+    ["1", "5", "4", "2", "3", "7", "8", "9", "6"],
+    ["3", "6", "9", "8", "4", "5", "7", "2", "1"],
+    ["2", "8", "7", "1", "6", "9", "5", "3", "4"],
+    ["5", "2", "1", "9", "7", "4", "3", "6", "8"],
+    ["4", "3", "8", "5", "2", "6", "9", "1", "7"],
+    ["7", "9", "6", "3", "1", "8", "4", "5", "2"]
+]
+   */
+
   const [error, setError] = useState<Error>({
     row: -1,
     col: -1,
   });
 
-  window["validateSudoku"] = validateSudoku(gridValues);
+  // window["validateSudoku"] = validateSudoku(gridValues);
 
   const validate = () => {
     const error: Error = validateSudoku(gridValues);
@@ -47,10 +112,6 @@ function App() {
       setError(error);
     }
   };
-
-  // useEffect(() => {
-  //   validateSudoku();
-  // }, [gridValues, validateSudoku]);
 
   const handleInputChange = (row: number, col: number, value: string) => {
     const newGridValues = gridValues.map((rowArray, rowIndex) =>
@@ -63,6 +124,15 @@ function App() {
     setGridValues(newGridValues);
   };
 
+  const handleSolve = () => {
+    const result = solveSudoku(gridValues);
+    setGridValues(result);
+    console.log("result", result);
+  };
+
+  useEffect(() => {
+    console.log("gridValues", gridValues);
+  }, [gridValues]);
   const renderSubGrid = (startRow: number, startCol: number) => (
     <Box sx={{ border: 1, borderColor: "lightgrey" }}>
       <Grid container spacing={0}>
@@ -100,10 +170,6 @@ function App() {
     </Box>
   );
 
-  useEffect(() => {
-    console.log("in error", error);
-  }, [error]);
-
   return (
     <Container maxWidth="lg">
       <Stack
@@ -127,6 +193,7 @@ function App() {
           </Grid>
         </Stack>
         <Button onClick={validate}>validate</Button>
+        <Button onClick={handleSolve}>solve</Button>
       </Stack>
     </Container>
   );
